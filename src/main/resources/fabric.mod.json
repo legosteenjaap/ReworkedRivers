@@ -1,38 +1,34 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "reworkedrivers",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "ReworkedRivers",
+  "description": "This mod reworks Minecraft rivers.",
   "authors": [
-    "Me!"
+    "Legosteenjaap"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/legosteenjaap/ReworkedRivers"
   },
 
-  "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "license": "LGPL-3.0 License",
+  "icon": "assets/reworkedrivers/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "me.legosteenjaap.reworkedrivers.ReworkedRivers"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "reworkedrivers.mixins.json"
   ],
 
   "depends": {
-    "fabricloader": ">=0.12.12",
+    "fabricloader": ">=0.14.8",
     "fabric": "*",
-    "minecraft": "1.18.x",
+    "minecraft": "1.19.x",
     "java": ">=17"
-  },
-  "suggests": {
-    "another-mod": "*"
   }
 }
