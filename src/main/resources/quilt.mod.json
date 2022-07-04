@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "quilt_loader": {
+    "group": "me.legosteenjaap",
+    "id": "reworkedrivers",
+    "version": "${version}",
+    "metadata": {
+      "name": "ReworkedRivers",
+      "description": "This mod reworks Minecraft rivers.",
+      "contributors": {
+        "Legosteenjaap": "Programmer"
+      },
+      "contact": {
+        "issues": "https://github.com/legosteenjaap/ReworkedRivers/issues",
+        "sources": "https://github.com/legosteenjaap/ReworkedRivers"
+      },
+      "icon": "assets/reworkedrivers/icon.png"
+    },
+    "intermediate_mappings": "net.fabricmc:intermediary",
+    "entrypoints": {
+      "init": "me.legosteenjaap.reworkedrivers.ReworkedRivers"
+    },
+    "accessWidener" : "reworkedrivers.accesswidener",
+    "depends": [
+      {
+        "id": "quilt_loader",
+        "versions": ">=0.17.0-"
+      },
+      {
+        "id": "minecraft",
+        "versions": ">=1.19"
+      }
+    ]
+  },
+  "mixin": "reworkedrivers.mixins.json"
+}
