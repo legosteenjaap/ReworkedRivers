@@ -1,3 +1,4 @@
 accessWidener	v1	named
-#extendable   class   net/minecraft/world/chunk/ChunkStatus$GenerationTask
-#extendable   class   net/minecraft/world/chunk/ChunkStatus$LoadTask
+extendable   class   net/minecraft/world/level/chunk/ChunkStatus$GenerationTask
+extendable   class   net/minecraft/world/level/chunk/ChunkStatus$LoadingTask
+accessible   method  net/minecraft/world/level/chunk/Chunkstatus <init> (Ljava/lang/String;Lnet/minecraft/world/level/chunk/ChunkStatus;ILjava/util/EnumSet;Lnet/minecraft/world/level/chunk/ChunkStatus$ChunkType;Lnet/minecraft/world/level/chunk/ChunkStatus$GenerationTask;Lnet/minecraft/world/level/chunk/ChunkStatus$LoadingTask;)V
