@@ -4,7 +4,8 @@
   "package": "me.legosteenjaap.reworkedrivers.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "ChunkStatusesMixin"
+    "ChunkStatusesMixin",
+    "ChunkStatusInvoker"
   ],
   "client": [
   ],

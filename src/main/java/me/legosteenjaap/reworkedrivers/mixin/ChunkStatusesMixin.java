@@ -5,6 +5,7 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Either;
 import net.minecraft.core.Registry;
 import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.ProtoChunk;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
@@ -24,6 +25,8 @@ import static net.minecraft.world.level.chunk.ChunkStatus.*;
 @Mixin(ChunkStatus.class)
 public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
 
+    @Shadow @Final private LoadingTask loadingTask;
+    @Shadow @Final private GenerationTask generationTask;
     @Shadow @Final private String name;
     @Shadow @Final public static ChunkStatus EMPTY;
     @Shadow @Final public static ChunkStatus LIQUID_CARVERS;
@@ -31,7 +34,34 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
 
     @Inject(method = "register(Ljava/lang/String;Lnet/minecraft/world/level/chunk/ChunkStatus;ILjava/util/EnumSet;Lnet/minecraft/world/level/chunk/ChunkStatus$ChunkType;Lnet/minecraft/world/level/chunk/ChunkStatus$GenerationTask;Lnet/minecraft/world/level/chunk/ChunkStatus$LoadingTask;)Lnet/minecraft/world/level/chunk/ChunkStatus;", at = @At("HEAD"), cancellable = true)
     private static void modifyStrcutureStarts(String key, ChunkStatus parent, int taskRange, EnumSet<Heightmap.Types> heightmaps, ChunkType type, GenerationTask generationTask, LoadingTask loadingTask, CallbackInfoReturnable<ChunkStatus> cir) {
-        if (key.equals("structure_starts")) cir.setReturnValue(Registry.register(Registry.CHUNK_STATUS, key, new ChunkStatus()));
+
+        if (key.equals("structure_starts")) {
+            RIVER_POINTS = register(
+                    "river_points",
+                    EMPTY,
+                    0,
+                    PRE_FEATURES,
+                    ChunkStatus.ChunkType.PROTOCHUNK,
+                    (targetStatus, executor, world, chunkGenerator, structureTemplateManager, lightingProvider, function, chunks, chunk, bl) -> {
+                        //System.out.println(world.getHeight(Heightmap.Types.WORLD_SURFACE_WG,0, 0));
+                        return CompletableFuture.completedFuture(Either.left(chunk));
+                    });
+
+            cir.setReturnValue(Registry.register(Registry.CHUNK_STATUS, key, ChunkStatusInvoker.init(key, RIVER_POINTS, taskRange, heightmaps, type, generationTask, loadingTask)));
+        }
+    }
+
+    @Shadow
+    private static ChunkStatus register(
+            String key,
+            @Nullable ChunkStatus parent,
+            int taskRange,
+            EnumSet<Heightmap.Types> heightmaps,
+            ChunkStatus.ChunkType type,
+            ChunkStatus.GenerationTask generationTask,
+            ChunkStatus.LoadingTask loadingTask
+    ) {
+        throw new AssertionError();
     }
 
     @Shadow
@@ -49,16 +79,7 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
     @Shadow private static final EnumSet<Heightmap.Types> PRE_FEATURES = EnumSet.of(Heightmap.Types.OCEAN_FLOOR_WG, Heightmap.Types.WORLD_SURFACE_WG);
 
 
-    private static final ChunkStatus RIVER_POINTS = register(
-            "river_points",
-            EMPTY,
-            0,
-            PRE_FEATURES,
-            ChunkStatus.ChunkType.PROTOCHUNK,
-            (targetStatus, executor, world, chunkGenerator, structureTemplateManager, lightingProvider, function, chunks, chunk, bl) -> {
-                return CompletableFuture.completedFuture(Either.left(chunk));
-            }
-    );
+    private static ChunkStatus RIVER_POINTS = null;
 
     @Shadow @Final @Mutable private static final List<ChunkStatus> STATUS_BY_RANGE = ImmutableList.of(
             FULL,
@@ -72,7 +93,6 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
             STRUCTURE_STARTS,
             STRUCTURE_STARTS,
             STRUCTURE_STARTS,
-            STRUCTURE_STARTS,
-            RIVER_POINTS
+            STRUCTURE_STARTS
     );
 }
