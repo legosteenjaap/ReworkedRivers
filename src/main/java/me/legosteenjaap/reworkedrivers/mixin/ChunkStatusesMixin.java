@@ -25,6 +25,8 @@ import static net.minecraft.world.level.chunk.ChunkStatus.*;
 @Mixin(ChunkStatus.class)
 public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
 
+    @Shadow @Final public static ChunkStatus STRUCTURE_STARTS;
+    @Shadow @Final public static ChunkStatus STRUCTURE_REFERENCES;
     @Shadow @Final private LoadingTask loadingTask;
     @Shadow @Final private GenerationTask generationTask;
     @Shadow @Final private String name;
@@ -35,7 +37,7 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
     @Inject(method = "register(Ljava/lang/String;Lnet/minecraft/world/level/chunk/ChunkStatus;ILjava/util/EnumSet;Lnet/minecraft/world/level/chunk/ChunkStatus$ChunkType;Lnet/minecraft/world/level/chunk/ChunkStatus$GenerationTask;Lnet/minecraft/world/level/chunk/ChunkStatus$LoadingTask;)Lnet/minecraft/world/level/chunk/ChunkStatus;", at = @At("HEAD"), cancellable = true)
     private static void modifyStrcutureStarts(String key, ChunkStatus parent, int taskRange, EnumSet<Heightmap.Types> heightmaps, ChunkType type, GenerationTask generationTask, LoadingTask loadingTask, CallbackInfoReturnable<ChunkStatus> cir) {
 
-        if (key.equals("structure_starts")) {
+        /*if (key.equals("structure_starts")) {
             RIVER_POINTS = register(
                     "river_points",
                     EMPTY,
@@ -48,6 +50,9 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
                     });
 
             cir.setReturnValue(Registry.register(Registry.CHUNK_STATUS, key, ChunkStatusInvoker.init(key, RIVER_POINTS, taskRange, heightmaps, type, generationTask, loadingTask)));
+        }*/
+        if (key.equals("structure_references")) {
+            cir.setReturnValue(Registry.register(Registry.CHUNK_STATUS, key, ChunkStatusInvoker.init(key, parent, 40, heightmaps, type, generationTask, loadingTask)));
         }
     }
 
@@ -93,6 +98,38 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
             STRUCTURE_STARTS,
             STRUCTURE_STARTS,
             STRUCTURE_STARTS,
-            STRUCTURE_STARTS
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS,
+            STRUCTURE_STARTS/*,
+            STRUCTURE_STARTS*/
     );
 }
