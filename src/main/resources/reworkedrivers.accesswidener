@@ -1,4 +1,6 @@
 accessWidener	v1	named
 extendable   class   net/minecraft/world/level/chunk/ChunkStatus$GenerationTask
+extendable   class   net/minecraft/world/level/chunk/ChunkStatus$SimpleGenerationTask
 extendable   class   net/minecraft/world/level/chunk/ChunkStatus$LoadingTask
+accessible   field   net/minecraft/world/level/levelgen/RandomState router Lnet/minecraft/world/level/levelgen/NoiseRouter;
 #accessible   method  net/minecraft/world/level/chunk/Chunkstatus <init> (Ljava/lang/String;Lnet/minecraft/world/level/chunk/ChunkStatus;ILjava/util/EnumSet;Lnet/minecraft/world/level/chunk/ChunkStatus$ChunkType;Lnet/minecraft/world/level/chunk/ChunkStatus$GenerationTask;Lnet/minecraft/world/level/chunk/ChunkStatus$LoadingTask;)Lnet/minecraft/world/level/chunk/ChunkStatus;
