@@ -7,8 +7,10 @@ import java.util.List;
 
 public interface ChunkRiverInterface {
 
-    void addRiverDirection(RiverDirection riverDirection);
-    ArrayList<RiverDirection> getRiverDirections();
+    void addRiverUpDirection(RiverDirection riverDirection);
+    void addRiverDownDirection(RiverDirection riverDirection);
+    ArrayList<RiverDirection> getRiverUpDirections();
+    ArrayList<RiverDirection> getRiverDownDirections();
     void setRiverPoint(double riverPoint);
     double getRiverPoint();
 

@@ -32,7 +32,7 @@ public abstract class DebugScreenOverlayMixin {
         BlockPos blockPos = this.minecraft.getCameraEntity().blockPosition();
         ChunkAccess chunkAccess = getLevel().getChunk(blockPos);
         cir.getReturnValue().add("RiverPoint: " + ((ChunkRiverInterface)chunkAccess).getRiverPoint());
-        cir.getReturnValue().add("depth: " + getServerLevel().getChunkSource().randomState().router.initialDensityWithoutJaggedness().compute(new DensityFunction.SinglePointContext(blockPos.getX(), 0,blockPos.getZ())));
+        cir.getReturnValue().add("depth: " + getServerLevel().getChunkSource().randomState().sampler().depth().compute(new DensityFunction.SinglePointContext(blockPos.getX(), 0,blockPos.getZ())));
     }
 
 }

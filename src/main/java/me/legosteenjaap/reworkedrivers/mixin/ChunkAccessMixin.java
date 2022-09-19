@@ -11,16 +11,27 @@ import java.util.ArrayList;
 public class ChunkAccessMixin implements ChunkRiverInterface {
 
     private double riverPoint;
-    private ArrayList<RiverDirection> riverDirections = new ArrayList<>();
+    private ArrayList<RiverDirection> riverUpDirections = new ArrayList<>();
+    private ArrayList<RiverDirection> riverDownDirections = new ArrayList<>();
 
     @Override
-    public void addRiverDirection(RiverDirection riverDirection) {
-        riverDirections.add(riverDirection);
+    public void addRiverUpDirection(RiverDirection riverDirection) {
+        riverUpDirections.add(riverDirection);
     }
 
     @Override
-    public ArrayList<RiverDirection> getRiverDirections() {
-        return riverDirections;
+    public ArrayList<RiverDirection> getRiverUpDirections() {
+        return riverUpDirections;
+    }
+
+    @Override
+    public void addRiverDownDirection(RiverDirection riverDirection) {
+        riverDownDirections.add(riverDirection);
+    }
+
+    @Override
+    public ArrayList<RiverDirection> getRiverDownDirections() {
+        return riverDownDirections;
     }
 
     @Override

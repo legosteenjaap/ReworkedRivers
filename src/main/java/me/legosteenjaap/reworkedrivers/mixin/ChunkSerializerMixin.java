@@ -28,21 +28,39 @@ public class ChunkSerializerMixin {
         ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface) chunk;
         CompoundTag compoundTag = cir.getReturnValue();
         compoundTag.putDouble("riverPoint", chunkRiverInterface.getRiverPoint());
-        ListTag riverDirections = new ListTag();
-        riverDirections.addAll(chunkRiverInterface.getRiverDirections().stream().map((riverDirection) -> {
-            return StringTag.valueOf(riverDirection.toString());
-        }).toList());
-        compoundTag.put("riverDirections", riverDirections);
+        writeRiverDirections(compoundTag, chunkRiverInterface.getRiverUpDirections(), "riverUpDirections");
+        writeRiverDirections(compoundTag, chunkRiverInterface.getRiverDownDirections(), "riverDownDirections");
     }
 
     @Inject(method = "read", at = @At("RETURN"))
     private static void read(ServerLevel lvel, PoiManager poiManager, ChunkPos pos, CompoundTag tag, CallbackInfoReturnable<ProtoChunk> cir) {
         ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface) cir.getReturnValue();
         if (tag.contains("riverPoint")) chunkRiverInterface.setRiverPoint(tag.getDouble("riverPoint"));
-        if (tag.contains("riverDirections")) {
-            ListTag riverDirections = tag.getList("riverDirections", 8);
+        readRiverUpDirections(tag, chunkRiverInterface);
+    }
+
+    private static void writeRiverDirections(CompoundTag compoundTag, List<RiverDirection> riverDirections, String key) {
+        ListTag riverDirectionsTag = new ListTag();
+        riverDirectionsTag.addAll(riverDirections.stream().map((riverDirection) -> {
+            return StringTag.valueOf(riverDirection.toString());
+        }).toList());
+        compoundTag.put(key, riverDirectionsTag);
+    }
+
+    private static void readRiverUpDirections(CompoundTag compoundTag, ChunkRiverInterface chunkRiverInterface) {
+        if (compoundTag.contains("riverUpDirections")) {
+            ListTag riverDirections = compoundTag.getList("riverUpDirections", 8);
             for (Tag riverDirection : riverDirections) {
-                chunkRiverInterface.addRiverDirection(RiverDirection.valueOf(riverDirection.getAsString()));
+                chunkRiverInterface.addRiverUpDirection(RiverDirection.valueOf(riverDirection.getAsString()));
+            }
+        }
+    }
+
+    private static void readRiverDownDirections(CompoundTag compoundTag, ChunkRiverInterface chunkRiverInterface) {
+        if (compoundTag.contains("riverDownDirections")) {
+            ListTag riverDirections = compoundTag.getList("riverDownDirections", 8);
+            for (Tag riverDirection : riverDirections) {
+                chunkRiverInterface.addRiverDownDirection(RiverDirection.valueOf(riverDirection.getAsString()));
             }
         }
     }
