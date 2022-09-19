@@ -2,6 +2,7 @@ package me.legosteenjaap.reworkedrivers;
 
 import me.legosteenjaap.reworkedrivers.mixin.ChunkStatusesMixin;
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,7 @@ public class ReworkedRivers implements ModInitializer {
 	// That way, it's clear which mod wrote info, warnings, and errors.
 	public static final Logger LOGGER = LoggerFactory.getLogger("modid");
 
-
+	public static final String MOD_ID = "reworked_rivers";
 
 	@Override
 	public void onInitialize() {
