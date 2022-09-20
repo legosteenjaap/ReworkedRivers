@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.ProtoChunk;
 import net.minecraft.world.level.levelgen.DensityFunction;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
@@ -35,11 +36,15 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static net.minecraft.world.level.chunk.ChunkStatus.*;
 
 @Mixin(ChunkStatus.class)
 public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
+
+    @Shadow @Final public static EnumSet<Heightmap.Types> POST_FEATURES;
+    @Shadow @Final public static ChunkStatus NOISE;
 
     @Shadow public abstract CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>> load(ServerLevel level, StructureTemplateManager structureTemplateManager, ThreadedLevelLightEngine lightEngine, Function<ChunkAccess, CompletableFuture<Either<ChunkAccess, ChunkHolder.ChunkLoadingFailure>>> task, ChunkAccess loadingChunk);
 
@@ -112,31 +117,53 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
                         return CompletableFuture.completedFuture(Either.left(chunkAccess));
                     });
             cir.setReturnValue(Registry.register(Registry.CHUNK_STATUS, key, ChunkStatusInvoker.init(key, RIVER_PRE_GEN, 0, heightmaps, type, generationTask, loadingTask)));
-        } else if (key.equals("surface")) {
+        } else if (key.equals("features")) {
             RIVER_BLOCK_GEN = register(
                     "river_block_gen",
-                    NOISE,
+                    LIQUID_CARVERS,
                     1,
-                    PRE_FEATURES,
+                    POST_FEATURES,
                     ChunkStatus.ChunkType.PROTOCHUNK,
                     (chunkStatus, executor, serverLevel, chunkGenerator, structureTemplateManager, threadedLevelLightEngine, function, list, chunkAccess, bl) -> {
-                        WorldGenRegion worldGenRegion = new WorldGenRegion(serverLevel, list, chunkStatus, 1);
+                        ProtoChunk protoChunk = (ProtoChunk)chunkAccess;
+                        protoChunk.setLightEngine(threadedLevelLightEngine);
                         ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface) chunkAccess;
-                        for (RiverDirection riverDirection : chunkRiverInterface.getRiverUpDirections()) {
-                            generateRiverBlocks(worldGenRegion, chunkAccess, riverDirection, true);
+                        if (bl || !chunkAccess.getStatus().isOrAfter(chunkStatus)) {
+                            Heightmap.primeHeightmaps(
+                                    chunkAccess,
+                                    EnumSet.of(Heightmap.Types.MOTION_BLOCKING, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, Heightmap.Types.OCEAN_FLOOR, Heightmap.Types.WORLD_SURFACE)
+                            );
+                            WorldGenRegion worldGenRegion = new WorldGenRegion(serverLevel, list, chunkStatus, 1);
+                            try {
+                                for (RiverDirection riverDirection : chunkRiverInterface.getRiverUpDirections()) {
+                                    generateRiverBlocks(worldGenRegion, chunkAccess, riverDirection, true);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                            protoChunk.setStatus(chunkStatus);
                         }
-                        for (RiverDirection riverDirection : chunkRiverInterface.getRiverDownDirections()) {
-                            generateRiverBlocks(worldGenRegion, chunkAccess, riverDirection, false);
-                        }
-                        return CompletableFuture.completedFuture(Either.left(chunkAccess));
-                    });
+                        return threadedLevelLightEngine.retainData(chunkAccess).thenApply(Either::left);
+                    },
+                    (chunkStatus, serverLevel, structureTemplateManager, threadedLevelLightEngine, function, chunkAccess) -> threadedLevelLightEngine.retainData(chunkAccess)
+                            .thenApply(Either::left));
+
             cir.setReturnValue(Registry.register(Registry.CHUNK_STATUS, key, ChunkStatusInvoker.init(key, RIVER_BLOCK_GEN, taskRange, heightmaps, type, generationTask, loadingTask)));
         }
     }
 
+    /*
+
+     */
+
     @Shadow
     private static ChunkStatus registerSimple(String key, @Nullable ChunkStatus parent, int taskRange, EnumSet<Heightmap.Types> heightmaps, ChunkType type, ChunkStatus.SimpleGenerationTask generationTask) {
         throw new AssertionError();
+    }
+
+    @Inject(method = "method_20613", at = @At("HEAD"), cancellable = true)
+    private static void test(ChunkStatus chunkStatus, Executor executor, ServerLevel serverLevel, ChunkGenerator chunkGenerator, StructureTemplateManager structureTemplateManager, ThreadedLevelLightEngine threadedLevelLightEngine, Function function, List list, ChunkAccess chunkAccess, boolean bl, CallbackInfoReturnable<CompletableFuture> cir) {
+        cir.setReturnValue(threadedLevelLightEngine.retainData(chunkAccess).thenApply(Either::left));
     }
 
     @Shadow
@@ -168,7 +195,6 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
         int lowestY = getLowestY(chunkAccess);
 
         ChunkPos chunkPos = chunkAccess.getPos();
-
         if (direction.isDiagonal()) {
             for (int i = 0; i <= 7; i++) {
                 int multiplierX = 1;
@@ -188,39 +214,41 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
                 if (multiplierZ == -1) zOffset = -1;
                 blockPos = new BlockPos(chunkPos.getBlockX(7 + (xOffset - i) * multiplierX), lowestY, chunkPos.getBlockZ(7 + (zOffset - i) * multiplierZ));
 
-                setRiverBlock(chunkAccess, blockPos);
-                setRiverBlock(chunkAccess, blockPos.offset(multiplierX, 0, 0));
-                setRiverBlock(chunkAccess, blockPos.offset(0, 0, multiplierZ));
+                setRiverBlock(worldGenRegion, blockPos);
+                setRiverBlock(worldGenRegion, blockPos.offset(multiplierX, 0, 0));
+                setRiverBlock(worldGenRegion, blockPos.offset(0, 0, multiplierZ));
                 if (chunkAccess.getBlockState(blockPos.offset(multiplierX * 2, 0, 0)) == Blocks.AIR.defaultBlockState()) {
-                    setDirtBlock(chunkAccess, blockPos.offset(multiplierX * 2, 0, 0));
+                    setDirtBlock(worldGenRegion, blockPos.offset(multiplierX * 2, 0, 0));
                 } else if (chunkAccess.getBlockState(blockPos.offset(0, 0, multiplierZ * 2)) == Blocks.AIR.defaultBlockState()) {
-                    setDirtBlock(chunkAccess, blockPos.offset(0, 0, multiplierZ * 2));
+                    setDirtBlock(worldGenRegion, blockPos.offset(0, 0, multiplierZ * 2));
                 }
             }
         } else {
             boolean alternateZ = direction == RiverDirection.SOUTH || direction == RiverDirection.EAST;
-            for (int x = 7; x <= 8; x++) {
-                for (int z = alternateZ ? 15 : 7; z >= (alternateZ ? 8 : 0); z--) {
+            for (int x = 0; x <= 1; x++) {
+                for (int z = 15; z >= 0; z--) {
                     BlockPos blockPos;
                     if (direction == RiverDirection.NORTH || direction == RiverDirection.SOUTH) {
-                        blockPos = new BlockPos(chunkPos.getBlockX(x), lowestY, chunkPos.getBlockZ(z));
-                        if ((z == 15 || z == 0) && isUp) {
+                        BlockPos startPos = new BlockPos(chunkPos.getBlockX(7), lowestY, chunkPos.getBlockZ(alternateZ ? 15 : 7));
+                        blockPos = startPos.offset(x, 0, z);
+                        /*if ((z == 15 || z == 0) && isUp) {
                             ChunkPos flowingTowardsPos = RiverDirection.addDirectionToChunkPos(chunkPos, direction);
                             ChunkAccess flowingTowardsChunk = worldGenRegion.getChunk(flowingTowardsPos.x, flowingTowardsPos.z);
                             int topY = getLowestY(flowingTowardsChunk);
                             setFlowingWaterBlocks(chunkAccess, blockPos, topY);
-                        }
+                        }*/
                     } else {
                         //switches x and z if direction is on the northwest axis
-                        blockPos = new BlockPos(chunkPos.getBlockZ(z), lowestY, chunkPos.getBlockX(x));
-                        if ((z == 15 || z == 0) && isUp) {
+                        BlockPos startPos = new BlockPos(chunkPos.getBlockX(alternateZ ? 15 : 7), lowestY, chunkPos.getBlockZ(7));
+                        blockPos = startPos.offset(z, 0, x);
+                        /*if ((z == 15 || z == 0) && isUp) {
                             ChunkPos flowingTowardsPos = RiverDirection.addDirectionToChunkPos(chunkPos, direction);
                             ChunkAccess flowingTowardsChunk = worldGenRegion.getChunk(flowingTowardsPos.x, flowingTowardsPos.z);
                             int topY = getLowestY(flowingTowardsChunk);
                             setFlowingWaterBlocks(chunkAccess, blockPos, topY);
-                        }
+                        }*/
                     }
-                    setRiverBlock(chunkAccess, blockPos);
+                    setRiverBlock(worldGenRegion, blockPos);
                 }
             }
         }
@@ -257,9 +285,11 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
         return bestPossibleNeighbor;
     }
 
-    private static void setRiverBlock(ChunkAccess chunkAccess, BlockPos blockPos) {
+    private static void setRiverBlock(WorldGenRegion worldGenRegion, BlockPos blockPos) {
+        if (!worldGenRegion.hasChunkAt(blockPos)) throw new AssertionError();
+        ChunkAccess chunkAccess = worldGenRegion.getChunk(blockPos);
         chunkAccess.setBlockState(blockPos, Blocks.WATER.defaultBlockState(), true);
-        if (chunkAccess.getBlockState(blockPos.below()) == Blocks.AIR.defaultBlockState()) chunkAccess.setBlockState(blockPos.below(), Blocks.DIRT.defaultBlockState(), true);
+        if (chunkAccess.getBlockState(blockPos.below()) == Blocks.AIR.defaultBlockState()) chunkAccess.setBlockState(blockPos.below(), Blocks.DIRT.defaultBlockState(), false);
         for(int y = 1; y <= 32; y++) {
             chunkAccess.setBlockState(blockPos.atY(blockPos.getY() + y), Blocks.AIR.defaultBlockState(), false);
         }
@@ -274,8 +304,8 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
         }
     }
 
-    private static void setDirtBlock(ChunkAccess chunkAccess, BlockPos blockPos) {
-        chunkAccess.setBlockState(blockPos, Blocks.DIRT.defaultBlockState(), true);
+    private static void setDirtBlock(WorldGenRegion worldGenRegion, BlockPos blockPos) {
+        worldGenRegion.setBlock(blockPos, Blocks.DIRT.defaultBlockState(), 1);
     }
 
 
