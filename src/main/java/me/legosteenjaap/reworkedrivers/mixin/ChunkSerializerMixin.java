@@ -29,7 +29,6 @@ public class ChunkSerializerMixin {
         CompoundTag compoundTag = cir.getReturnValue();
         compoundTag.putDouble("riverPoint", chunkRiverInterface.getRiverPoint());
         writeRiverDirections(compoundTag, chunkRiverInterface.getRiverUpDirections(), "riverUpDirections");
-        writeRiverDirections(compoundTag, chunkRiverInterface.getRiverDownDirections(), "riverDownDirections");
     }
 
     @Inject(method = "read", at = @At("RETURN"))
@@ -52,15 +51,6 @@ public class ChunkSerializerMixin {
             ListTag riverDirections = compoundTag.getList("riverUpDirections", 8);
             for (Tag riverDirection : riverDirections) {
                 chunkRiverInterface.addRiverUpDirection(RiverDirection.valueOf(riverDirection.getAsString()));
-            }
-        }
-    }
-
-    private static void readRiverDownDirections(CompoundTag compoundTag, ChunkRiverInterface chunkRiverInterface) {
-        if (compoundTag.contains("riverDownDirections")) {
-            ListTag riverDirections = compoundTag.getList("riverDownDirections", 8);
-            for (Tag riverDirection : riverDirections) {
-                chunkRiverInterface.addRiverDownDirection(RiverDirection.valueOf(riverDirection.getAsString()));
             }
         }
     }

@@ -2,6 +2,7 @@ package me.legosteenjaap.reworkedrivers.mixin;
 
 
 import com.mojang.datafixers.util.Either;
+import com.mojang.datafixers.util.Pair;
 import me.legosteenjaap.reworkedrivers.ReworkedRivers;
 import me.legosteenjaap.reworkedrivers.RiverDirection;
 import me.legosteenjaap.reworkedrivers.interfaces.ChunkRiverInterface;
@@ -36,7 +37,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.function.Function;
-import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static net.minecraft.world.level.chunk.ChunkStatus.*;
 
@@ -71,6 +72,9 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
     @Shadow @Final private String name;
     @Shadow @Final public static ChunkStatus LIQUID_CARVERS;
 
+    private static final int[] checkLocDiagonalX = new int[]{0, 1, 0, 1, -1};
+    private static final int[] checkLocDiagonalZ = new int[]{0, 0, 1, -1, 1};
+
     @Inject(method = "register(Ljava/lang/String;Lnet/minecraft/world/level/chunk/ChunkStatus;ILjava/util/EnumSet;Lnet/minecraft/world/level/chunk/ChunkStatus$ChunkType;Lnet/minecraft/world/level/chunk/ChunkStatus$GenerationTask;Lnet/minecraft/world/level/chunk/ChunkStatus$LoadingTask;)Lnet/minecraft/world/level/chunk/ChunkStatus;", at = @At("HEAD"), cancellable = true)
     private static void modifyStructureStarts(String key, ChunkStatus parent, int taskRange, EnumSet<Heightmap.Types> heightmaps, ChunkType type, GenerationTask generationTask, LoadingTask loadingTask, CallbackInfoReturnable<ChunkStatus> cir) {
 
@@ -98,6 +102,10 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
                         RandomSource random = serverLevel.getChunkSource().randomState().getOrCreateRandomFactory(new ResourceLocation(ReworkedRivers.MOD_ID)).at(startChunkPos.x, 0, startChunkPos.z);
                         WorldGenRegion worldGenRegion = new WorldGenRegion(serverLevel, list, chunkStatus, RIVER_GEN_RANGE);
                         ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface) chunkAccess;
+                        //This code is for debugging individual river pieces
+                        /*if (startChunkPos.x % 3 == 0 && startChunkPos.z % 3 == 0) {
+                            chunkRiverInterface.addRiverUpDirection(RiverDirection.NORTHWEST);
+                        }*/
                         if (chunkRiverInterface.getRiverPoint() < 0.44f && random.nextInt(10) == 0) {
                             ChunkPos currentChunkPos = startChunkPos;
                             ChunkRiverInterface currentRiverInterface = chunkRiverInterface;
@@ -108,7 +116,6 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
                                     currentRiverInterface.addRiverUpDirection(riverDirection);
                                     currentChunkPos = RiverDirection.addDirectionToChunkPos(currentChunkPos, riverDirection);
                                     currentRiverInterface = (ChunkRiverInterface) worldGenRegion.getChunk(currentChunkPos.x, currentChunkPos.z);
-                                    currentRiverInterface.addRiverDownDirection(riverDirection.getOpposite());
                                 } else {
                                     break;
                                 }
@@ -192,11 +199,10 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
     }
 
     private static void generateRiverBlocks(WorldGenRegion worldGenRegion, ChunkAccess chunkAccess, RiverDirection direction, boolean isUp) {
-        int lowestY = getLowestY(chunkAccess);
-
         ChunkPos chunkPos = chunkAccess.getPos();
+        int currentYlevel = getLowestYForStart(worldGenRegion, chunkAccess);;
         if (direction.isDiagonal()) {
-            for (int i = 0; i <= 7; i++) {
+            for (int i = 0; i <= 15; i++) {
                 int multiplierX = 1;
                 int multiplierZ = 1;
                 switch (direction) {
@@ -212,8 +218,12 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
                 int zOffset = 0;
                 if (multiplierX == -1) xOffset = -1;
                 if (multiplierZ == -1) zOffset = -1;
-                blockPos = new BlockPos(chunkPos.getBlockX(7 + (xOffset - i) * multiplierX), lowestY, chunkPos.getBlockZ(7 + (zOffset - i) * multiplierZ));
-
+                blockPos = new BlockPos(chunkPos.getBlockX(7 + (xOffset - i) * multiplierX), currentYlevel, chunkPos.getBlockZ(7 + (zOffset - i) * multiplierZ));
+                int height = getLowestYDiagonal(worldGenRegion, blockPos, multiplierX, multiplierZ);
+                if (currentYlevel > height && height >= worldGenRegion.getSeaLevel() - 1) {
+                    currentYlevel = height;
+                    blockPos = blockPos.atY(currentYlevel);
+                }
                 setRiverBlock(worldGenRegion, blockPos);
                 setRiverBlock(worldGenRegion, blockPos.offset(multiplierX, 0, 0));
                 setRiverBlock(worldGenRegion, blockPos.offset(0, 0, multiplierZ));
@@ -224,47 +234,71 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
                 }
             }
         } else {
-            boolean alternateZ = direction == RiverDirection.SOUTH || direction == RiverDirection.EAST;
-            for (int x = 0; x <= 1; x++) {
-                for (int z = 15; z >= 0; z--) {
-                    BlockPos blockPos;
-                    if (direction == RiverDirection.NORTH || direction == RiverDirection.SOUTH) {
-                        BlockPos startPos = new BlockPos(chunkPos.getBlockX(7), lowestY, chunkPos.getBlockZ(alternateZ ? 15 : 7));
-                        blockPos = startPos.offset(x, 0, z);
-                        /*if ((z == 15 || z == 0) && isUp) {
-                            ChunkPos flowingTowardsPos = RiverDirection.addDirectionToChunkPos(chunkPos, direction);
-                            ChunkAccess flowingTowardsChunk = worldGenRegion.getChunk(flowingTowardsPos.x, flowingTowardsPos.z);
-                            int topY = getLowestY(flowingTowardsChunk);
-                            setFlowingWaterBlocks(chunkAccess, blockPos, topY);
-                        }*/
-                    } else {
-                        //switches x and z if direction is on the northwest axis
-                        BlockPos startPos = new BlockPos(chunkPos.getBlockX(alternateZ ? 15 : 7), lowestY, chunkPos.getBlockZ(7));
-                        blockPos = startPos.offset(z, 0, x);
-                        /*if ((z == 15 || z == 0) && isUp) {
-                            ChunkPos flowingTowardsPos = RiverDirection.addDirectionToChunkPos(chunkPos, direction);
-                            ChunkAccess flowingTowardsChunk = worldGenRegion.getChunk(flowingTowardsPos.x, flowingTowardsPos.z);
-                            int topY = getLowestY(flowingTowardsChunk);
-                            setFlowingWaterBlocks(chunkAccess, blockPos, topY);
-                        }*/
+            boolean isSouthOrEast = direction == RiverDirection.SOUTH || direction == RiverDirection.EAST;
+            boolean isNorthOrSouth = direction == RiverDirection.NORTH || direction == RiverDirection.SOUTH;
+            for (int z = 0; z <= 15; z++) {
+                BlockPos blockPos;
+                if (isNorthOrSouth) {
+                    BlockPos startPos = new BlockPos(chunkPos.getBlockX(6), currentYlevel, chunkPos.getBlockZ(isSouthOrEast ? 8 : 7));
+                    blockPos = isSouthOrEast ? startPos.offset(0, 0, z + 1) : startPos.offset(0, 0, -z + 1);
+                    int height = getLowestYNonDiagonal(worldGenRegion, blockPos, true);
+                    if (currentYlevel > height && height >= worldGenRegion.getSeaLevel() - 1) {
+                        currentYlevel = height;
+                        blockPos = blockPos.atY(currentYlevel);
                     }
-                    setRiverBlock(worldGenRegion, blockPos);
+                } else {
+                    //switches x and z if direction is on the northwest axis
+                    BlockPos startPos = new BlockPos(chunkPos.getBlockX(isSouthOrEast ? 8 : 7), currentYlevel, chunkPos.getBlockZ(6));
+                    blockPos = isSouthOrEast ? startPos.offset(z + 1, 0, 0) : startPos.offset(-z + 1, 0, 0);
+                    int height = getLowestYNonDiagonal(worldGenRegion, blockPos, false);
+                    if (currentYlevel > height && height >= worldGenRegion.getSeaLevel() - 1) {
+                        currentYlevel = height;
+                        blockPos = blockPos.atY(currentYlevel);
+                    }
                 }
+                int backwardsMultiplier = isSouthOrEast ? -1 : 1;
+                setRiverBlock(worldGenRegion, isNorthOrSouth ? blockPos.offset(1, 0, backwardsMultiplier) : blockPos.offset(backwardsMultiplier, 0, 1));
+                setRiverBlock(worldGenRegion, isNorthOrSouth ? blockPos.offset(2, 0, backwardsMultiplier) : blockPos.offset(backwardsMultiplier, 0, 2));
             }
         }
     }
 
-    private static int getLowestY(ChunkAccess chunkAccess) {
-        int lowestY = 62;
+    private static int getLowestYForStart(WorldGenRegion worldGenRegion, ChunkAccess chunkAccess) {
+        int lowestY = worldGenRegion.getSeaLevel() - 1;
 
-        for (int x = 0; x <= 15; x++) {
-            for (int z = 0; z <= 15; z++) {
-                int height = chunkAccess.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
-                if ((x == 0 && z == 0) || height < lowestY) lowestY = height;
+        for (int x = 6; x <= 9; x++) {
+            for (int z = 6; z <= 9; z++) {
+                int height = chunkAccess.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z) - 1;
+                if ((x == 6 && z == 6) || height < lowestY) lowestY = height;
             }
         }
 
-        if (lowestY < 62) lowestY = 62;
+        if (lowestY < worldGenRegion.getSeaLevel() - 1) lowestY = worldGenRegion.getSeaLevel() - 1;
+        return lowestY;
+    }
+
+    private static int getLowestYNonDiagonal(WorldGenRegion worldGenRegion, BlockPos startPos, boolean isNorthSouth) {
+        Integer lowestY = null;
+        if (isNorthSouth) {
+            for (int i = 0; i <= 3; i++) {
+                int height = worldGenRegion.getHeight(Heightmap.Types.WORLD_SURFACE_WG, startPos.getX() + i, startPos.getZ()) - 2;
+                if (lowestY == null || lowestY > height) lowestY = height;
+            }
+        } else {
+            for (int i = 0; i <= 3; i++) {
+                int height = worldGenRegion.getHeight(Heightmap.Types.WORLD_SURFACE_WG, startPos.getX(), startPos.getZ() + i) - 2;
+                if (lowestY == null || lowestY > height) lowestY = height;
+            }
+        }
+        return lowestY;
+    }
+
+    private static int getLowestYDiagonal(WorldGenRegion worldGenRegion, BlockPos startPos, int multiplierX, int multiplierZ) {
+        Integer lowestY = null;
+        for (int i = 0; i <=4; i++) {
+            int height = worldGenRegion.getHeight(Heightmap.Types.WORLD_SURFACE_WG, startPos.getX() + checkLocDiagonalX[i] * multiplierX, startPos.getZ() + checkLocDiagonalZ[i] * multiplierZ) - 2;
+            if (lowestY == null || lowestY > height) lowestY = height;
+        }
         return lowestY;
     }
 
@@ -272,7 +306,7 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
         Optional<RiverDirection> bestPossibleNeighbor = Optional.empty();
         ChunkRiverInterface currentRiverInterface = (ChunkRiverInterface) worldGenRegion.getChunk(chunkPos.x, chunkPos.z);
         double highestRiverPoint = currentRiverInterface.getRiverPoint();
-        for (RiverDirection riverDirection : RiverDirection.values()) {
+        for (RiverDirection riverDirection : Arrays.stream(RiverDirection.values()).filter(RiverDirection::isStraight).toList()) {
             ChunkPos checkingChunkPos = RiverDirection.addDirectionToChunkPos(chunkPos, riverDirection);
             if (!worldGenRegion.hasChunk(checkingChunkPos.x, checkingChunkPos.z)) return Optional.empty();
             ChunkRiverInterface checkingRiverInterface = (ChunkRiverInterface) worldGenRegion.getChunk(checkingChunkPos.x, checkingChunkPos.z);

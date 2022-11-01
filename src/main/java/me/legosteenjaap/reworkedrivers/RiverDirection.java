@@ -1,7 +1,6 @@
 package me.legosteenjaap.reworkedrivers;
 
 import net.minecraft.world.level.ChunkPos;
-import org.checkerframework.checker.units.qual.C;
 
 public enum RiverDirection {
     NORTH,
@@ -25,6 +24,10 @@ public enum RiverDirection {
 
     public boolean isDiagonal() {
         return this.isDiagonal;
+    }
+
+    public boolean isStraight() {
+        return !this.isDiagonal;
     }
 
     public static ChunkPos addDirectionToChunkPos(ChunkPos chunkPos, RiverDirection riverDirection) {

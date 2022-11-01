@@ -12,7 +12,6 @@ public class ChunkAccessMixin implements ChunkRiverInterface {
 
     private double riverPoint;
     private ArrayList<RiverDirection> riverUpDirections = new ArrayList<>();
-    private ArrayList<RiverDirection> riverDownDirections = new ArrayList<>();
 
     @Override
     public void addRiverUpDirection(RiverDirection riverDirection) {
@@ -22,16 +21,6 @@ public class ChunkAccessMixin implements ChunkRiverInterface {
     @Override
     public ArrayList<RiverDirection> getRiverUpDirections() {
         return riverUpDirections;
-    }
-
-    @Override
-    public void addRiverDownDirection(RiverDirection riverDirection) {
-        riverDownDirections.add(riverDirection);
-    }
-
-    @Override
-    public ArrayList<RiverDirection> getRiverDownDirections() {
-        return riverDownDirections;
     }
 
     @Override

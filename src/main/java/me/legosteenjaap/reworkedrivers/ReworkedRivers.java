@@ -1,9 +1,8 @@
 package me.legosteenjaap.reworkedrivers;
 
 import me.legosteenjaap.reworkedrivers.mixin.ChunkStatusesMixin;
-import net.fabricmc.api.ModInitializer;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.chunk.ChunkStatus;
+import org.quiltmc.loader.api.ModContainer;
+import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +15,7 @@ public class ReworkedRivers implements ModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	@Override
-	public void onInitialize() {
+	public void onInitialize(ModContainer mod) {
+
 	}
 }
