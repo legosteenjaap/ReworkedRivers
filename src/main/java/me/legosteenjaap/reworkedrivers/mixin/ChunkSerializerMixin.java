@@ -18,7 +18,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Mixin(ChunkSerializer.class)
 public class ChunkSerializerMixin {
@@ -28,7 +27,7 @@ public class ChunkSerializerMixin {
         ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface) chunk;
         CompoundTag compoundTag = cir.getReturnValue();
         compoundTag.putDouble("riverPoint", chunkRiverInterface.getRiverPoint());
-        writeRiverDirections(compoundTag, chunkRiverInterface.getRiverUpDirections(), "riverUpDirections");
+        writeRiverDirections(compoundTag, chunkRiverInterface.getRiverDirections(), "riverUpDirections");
     }
 
     @Inject(method = "read", at = @At("RETURN"))
@@ -50,7 +49,7 @@ public class ChunkSerializerMixin {
         if (compoundTag.contains("riverUpDirections")) {
             ListTag riverDirections = compoundTag.getList("riverUpDirections", 8);
             for (Tag riverDirection : riverDirections) {
-                chunkRiverInterface.addRiverUpDirection(RiverDirection.valueOf(riverDirection.getAsString()));
+                chunkRiverInterface.addRiverDirection(RiverDirection.valueOf(riverDirection.getAsString()));
             }
         }
     }

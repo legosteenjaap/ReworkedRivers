@@ -1,14 +1,17 @@
 package me.legosteenjaap.reworkedrivers.interfaces;
 
 import me.legosteenjaap.reworkedrivers.RiverDirection;
+import net.minecraft.server.level.WorldGenRegion;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public interface ChunkRiverInterface {
 
-    void addRiverUpDirection(RiverDirection riverDirection);
-    ArrayList<RiverDirection> getRiverUpDirections();
+    void addRiverDirection(RiverDirection riverDirection);
+    void removeRiverDirections();
+    ArrayList<RiverDirection> getRiverDirections();
+    boolean hasRiverDirections();
+    boolean isSplit(WorldGenRegion worldGenRegion);
     void setRiverPoint(double riverPoint);
     double getRiverPoint();
 

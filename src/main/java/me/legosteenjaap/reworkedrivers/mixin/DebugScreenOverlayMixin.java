@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.levelgen.DensityFunction;
+import net.minecraft.world.level.levelgen.NoiseRouter;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,7 +33,9 @@ public abstract class DebugScreenOverlayMixin {
         BlockPos blockPos = this.minecraft.getCameraEntity().blockPosition();
         ChunkAccess chunkAccess = getLevel().getChunk(blockPos);
         cir.getReturnValue().add("RiverPoint: " + ((ChunkRiverInterface)chunkAccess).getRiverPoint());
-        cir.getReturnValue().add("depth: " + getServerLevel().getChunkSource().randomState().sampler().depth().compute(new DensityFunction.SinglePointContext(blockPos.getX(), 0,blockPos.getZ())));
+        NoiseRouter router = getServerLevel().getChunkSource().randomState().router();
+        double riverPoint = router.finalDensity().compute(new DensityFunction.SinglePointContext(minecraft.player.getBlockX(), minecraft.player.getBlockY(), minecraft.player.getBlockZ()));
+        cir.getReturnValue().add("Final Density: " + riverPoint);
     }
 
 }

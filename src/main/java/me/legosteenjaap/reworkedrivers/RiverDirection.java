@@ -89,5 +89,4 @@ public enum RiverDirection {
         }
         throw new AssertionError();
     }
-
 }

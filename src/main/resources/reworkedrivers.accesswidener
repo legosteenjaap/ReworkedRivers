@@ -4,3 +4,5 @@ extendable   class   net/minecraft/world/level/chunk/ChunkStatus$SimpleGeneratio
 extendable   class   net/minecraft/world/level/chunk/ChunkStatus$LoadingTask
 accessible   field   net/minecraft/world/level/levelgen/RandomState router Lnet/minecraft/world/level/levelgen/NoiseRouter;
 #accessible   method  net/minecraft/world/level/chunk/Chunkstatus <init> (Ljava/lang/String;Lnet/minecraft/world/level/chunk/ChunkStatus;ILjava/util/EnumSet;Lnet/minecraft/world/level/chunk/ChunkStatus$ChunkType;Lnet/minecraft/world/level/chunk/ChunkStatus$GenerationTask;Lnet/minecraft/world/level/chunk/ChunkStatus$LoadingTask;)Lnet/minecraft/world/level/chunk/ChunkStatus;
+accessible   method  net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator createNoiseChunk (Lnet/minecraft/world/level/chunk/ChunkAccess;Lnet/minecraft/world/level/StructureManager;Lnet/minecraft/world/level/levelgen/blending/Blender;Lnet/minecraft/world/level/levelgen/RandomState;)Lnet/minecraft/world/level/levelgen/NoiseChunk;
+accessible   field   net/minecraft/world/level/levelgen/NoiseChunk initialDensityNoJaggedness Lnet/minecraft/world/level/levelgen/DensityFunction;
