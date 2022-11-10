@@ -22,21 +22,25 @@ import java.util.List;
 @Mixin(ChunkSerializer.class)
 public class ChunkSerializerMixin {
 
+
+    //Writes all the river data to disk
     @Inject(method = "write", at = @At("RETURN"), cancellable = true)
     private static void write(ServerLevel level, ChunkAccess chunk, CallbackInfoReturnable<CompoundTag> cir) {
         ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface) chunk;
         CompoundTag compoundTag = cir.getReturnValue();
-        compoundTag.putDouble("riverPoint", chunkRiverInterface.getRiverPoint());
-        writeRiverDirections(compoundTag, chunkRiverInterface.getRiverDirections(), "riverUpDirections");
+        compoundTag.putInt("riverPoint", chunkRiverInterface.getRiverPoint());
+        writeRiverDirections(compoundTag, chunkRiverInterface.getRiverDirections(), "riverDirections");
     }
 
+    //Reads all the river data from disk
     @Inject(method = "read", at = @At("RETURN"))
     private static void read(ServerLevel lvel, PoiManager poiManager, ChunkPos pos, CompoundTag tag, CallbackInfoReturnable<ProtoChunk> cir) {
         ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface) cir.getReturnValue();
-        if (tag.contains("riverPoint")) chunkRiverInterface.setRiverPoint(tag.getDouble("riverPoint"));
-        readRiverUpDirections(tag, chunkRiverInterface);
+        if (tag.contains("riverPoint")) chunkRiverInterface.setRiverPoint(tag.getInt("riverPoint"));
+        readRiverDirections(tag, chunkRiverInterface);
     }
 
+    //Writes river directions to disk (this is extra difficult because you need to save multiple river directions and not one)
     private static void writeRiverDirections(CompoundTag compoundTag, List<RiverDirection> riverDirections, String key) {
         ListTag riverDirectionsTag = new ListTag();
         riverDirectionsTag.addAll(riverDirections.stream().map((riverDirection) -> {
@@ -45,9 +49,10 @@ public class ChunkSerializerMixin {
         compoundTag.put(key, riverDirectionsTag);
     }
 
-    private static void readRiverUpDirections(CompoundTag compoundTag, ChunkRiverInterface chunkRiverInterface) {
-        if (compoundTag.contains("riverUpDirections")) {
-            ListTag riverDirections = compoundTag.getList("riverUpDirections", 8);
+    //Reads river directions from disk
+    private static void readRiverDirections(CompoundTag compoundTag, ChunkRiverInterface chunkRiverInterface) {
+        if (compoundTag.contains("riverDirections")) {
+            ListTag riverDirections = compoundTag.getList("riverDirections", 8);
             for (Tag riverDirection : riverDirections) {
                 chunkRiverInterface.addRiverDirection(RiverDirection.valueOf(riverDirection.getAsString()));
             }

@@ -15,47 +15,78 @@ public abstract class ChunkAccessMixin implements ChunkRiverInterface {
 
     @Shadow public abstract ChunkPos getPos();
 
-    private double riverPoint;
-    private ArrayList<RiverDirection> riverDirections = new ArrayList<>();
+    //Chunk height estimation for river generation
+    private int riverPoint;
+    private final ArrayList<RiverDirection> riverDirections = new ArrayList<>();
+    private boolean hasSplit = false;
 
+    /**
+     * Adds a direction for a river-piece to the chunk.
+     * @param riverDirection The direction of the river-piece.
+     */
     @Override
     public void addRiverDirection(RiverDirection riverDirection) {
         this.riverDirections.add(riverDirection);
     }
 
+    /**
+     * Removes the river-piece directions from this chunk
+     */
     @Override
     public void removeRiverDirections() {
         this.riverDirections.clear();
     }
 
+    /**
+     * Gets all the current directions for river-pieces
+     * @return Directions for river-pieces
+     */
     @Override
     public ArrayList<RiverDirection> getRiverDirections() {
         return this.riverDirections;
     }
 
+    /**
+     * Checks if this chunk has directions for river-pieces
+     * @return -
+     */
     @Override
     public boolean hasRiverDirections() {
         return !this.riverDirections.isEmpty();
     }
 
+    /**
+     * Saves that a split occurred in this chunk
+     */
     @Override
-    public boolean isSplit(WorldGenRegion worldGenRegion) {
-        int splits = 0;
-        for (RiverDirection riverDirection : RiverDirection.values()) {
-            ChunkPos chunkPos = RiverDirection.addDirectionToChunkPos(this.getPos(), riverDirection);
-            ChunkRiverInterface riverInterface = (ChunkRiverInterface) worldGenRegion.getChunk(chunkPos.x, chunkPos.z);
-            if(riverInterface.getRiverDirections().contains(riverDirection.getOpposite())) splits++;
-        }
-        return splits > 1;
+    public void setSplit() {
+        hasSplit = true;
     }
 
+    /**
+     * Checks if a river-branch split occurred in this chunk.
+     * @return Checks if split occurred.
+     */
     @Override
-    public void setRiverPoint(double riverPoint) {
+    public boolean hasSplit() {
+        return hasSplit;
+    }
+
+    /**
+     * Sets the river point
+     * @param riverPoint Terrain height estimation for rivers
+     */
+    @Override
+    public void setRiverPoint(int riverPoint) {
         this.riverPoint = riverPoint;
     }
 
+    /**
+     * Returns the river point
+     * @return Current river point
+     */
     @Override
-    public double getRiverPoint() {
+    public int getRiverPoint() {
         return this.riverPoint;
     }
 }

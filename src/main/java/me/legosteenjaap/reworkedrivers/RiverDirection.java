@@ -30,6 +30,12 @@ public enum RiverDirection {
         return !this.isDiagonal;
     }
 
+    /**
+     * Moves one chunk away from a starting chunk with a certain direction.
+     * @param chunkPos Current position of chunk
+     * @param riverDirection Direction
+     * @return New chunk one chunk away from current position of chunk with a certain direction
+     */
     public static ChunkPos addDirectionToChunkPos(ChunkPos chunkPos, RiverDirection riverDirection) {
         switch (riverDirection) {
             case NORTH -> {
@@ -89,4 +95,5 @@ public enum RiverDirection {
         }
         throw new AssertionError();
     }
+
 }

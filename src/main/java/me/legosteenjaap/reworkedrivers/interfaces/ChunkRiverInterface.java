@@ -11,8 +11,9 @@ public interface ChunkRiverInterface {
     void removeRiverDirections();
     ArrayList<RiverDirection> getRiverDirections();
     boolean hasRiverDirections();
-    boolean isSplit(WorldGenRegion worldGenRegion);
-    void setRiverPoint(double riverPoint);
-    double getRiverPoint();
+    void setSplit();
+    boolean hasSplit();
+    void setRiverPoint(int riverPoint);
+    int getRiverPoint();
 
 }
