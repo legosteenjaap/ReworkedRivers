@@ -20,6 +20,8 @@ public class LevelChunkMixin {
         ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface)this;
         ChunkRiverInterface protoChunkRiverInterface = (ChunkRiverInterface)protoChunk;
         chunkRiverInterface.setRiverPoint(protoChunkRiverInterface.getRiverPoint());
+        chunkRiverInterface.setSplit(protoChunkRiverInterface.hasSplit());
+        chunkRiverInterface.setRiverBendType(protoChunkRiverInterface.getRiverBendType());
         for (RiverDirection riverDirection : protoChunkRiverInterface.getRiverDirections()) {
             chunkRiverInterface.addRiverDirection(riverDirection);
         }

@@ -9,7 +9,8 @@
     "ChunkStatusInvoker",
     "DebugScreenOverlayMixin",
     "ChunkSerializerMixin",
-    "LevelChunkMixin"
+    "LevelChunkMixin",
+    "LevelLoadingScreenMixin"
   ],
   "client": [
   ],

@@ -1,5 +1,6 @@
 package me.legosteenjaap.reworkedrivers.mixin;
 
+import me.legosteenjaap.reworkedrivers.RiverBendType;
 import me.legosteenjaap.reworkedrivers.RiverDirection;
 import me.legosteenjaap.reworkedrivers.interfaces.ChunkRiverInterface;
 import net.minecraft.server.level.WorldGenRegion;
@@ -15,10 +16,21 @@ public abstract class ChunkAccessMixin implements ChunkRiverInterface {
 
     @Shadow public abstract ChunkPos getPos();
 
+    private final ArrayList<RiverDirection> riverDirections = new ArrayList<>();
     //Chunk height estimation for river generation
     private int riverPoint;
-    private final ArrayList<RiverDirection> riverDirections = new ArrayList<>();
     private boolean hasSplit = false;
+    private RiverBendType riverBendType;
+
+    @Override
+    public void setRiverBendType(RiverBendType riverBendType) {
+        this.riverBendType = riverBendType;
+    }
+
+    @Override
+    public RiverBendType getRiverBendType() {
+        return this.riverBendType;
+    }
 
     /**
      * Adds a direction for a river-piece to the chunk.
@@ -56,11 +68,12 @@ public abstract class ChunkAccessMixin implements ChunkRiverInterface {
     }
 
     /**
-     * Saves that a split occurred in this chunk
+     * Saves if a split occurred in this chunk
+     * @param hasSplit Boolean which determines if a split has occurred in this chunk
      */
     @Override
-    public void setSplit() {
-        hasSplit = true;
+    public void setSplit(boolean hasSplit) {
+        this.hasSplit = hasSplit;
     }
 
     /**

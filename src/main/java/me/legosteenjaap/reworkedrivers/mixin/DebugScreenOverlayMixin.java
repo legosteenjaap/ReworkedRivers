@@ -26,19 +26,16 @@ public abstract class DebugScreenOverlayMixin {
 
     @Shadow @Final private Minecraft minecraft;
 
-    @Shadow @Nullable protected abstract ServerLevel getServerLevel();
-
     //This method injects extra data into the debug screen of minecraft which is opened with the f3 key.
     @Inject(method = "getGameInformation", at = @At(value = "RETURN"))
     protected void getGameInformation(CallbackInfoReturnable<List<String>> cir) {
         BlockPos blockPos = this.minecraft.getCameraEntity().blockPosition();
         ChunkAccess chunkAccess = getLevel().getChunk(blockPos);
         ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface) chunkAccess;
-        cir.getReturnValue().add("RiverPoint: " + ((ChunkRiverInterface)chunkAccess).getRiverPoint());
-        NoiseRouter router = getServerLevel().getChunkSource().randomState().router();
-        double riverPoint = router.finalDensity().compute(new DensityFunction.SinglePointContext(minecraft.player.getBlockX(), minecraft.player.getBlockY(), minecraft.player.getBlockZ()));
-        cir.getReturnValue().add("Final Density: " + riverPoint);
-        cir.getReturnValue().add("River-pieces: " + chunkRiverInterface.getRiverDirections().toString());
+        cir.getReturnValue().add("RiverPoint: " + chunkRiverInterface.getRiverPoint());
+        cir.getReturnValue().add("RiverPieces: " + chunkRiverInterface.getRiverDirections().toString());
+        cir.getReturnValue().add("RiverBendType: " + chunkRiverInterface.getRiverBendType());
+        cir.getReturnValue().add("hasSplit: " + chunkRiverInterface.hasSplit());
     }
 
 }
