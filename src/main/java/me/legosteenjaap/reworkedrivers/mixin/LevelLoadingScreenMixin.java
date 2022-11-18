@@ -13,9 +13,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class LevelLoadingScreenMixin {
 
     @Inject(method = "method_17537", at = @At("RETURN"))
-    private static void addChunkStatusColors(Object2IntOpenHashMap object2IntOpenHashMap, CallbackInfo ci) {
+    private static void addChunkStatusColors(Object2IntOpenHashMap<ChunkStatus> object2IntOpenHashMap, CallbackInfo ci) {
         object2IntOpenHashMap.put(NewChunkStatuses.RIVER_POINTS, 864590);
         object2IntOpenHashMap.put(NewChunkStatuses.RIVER_PRE_GEN, 123123);
+        object2IntOpenHashMap.put(NewChunkStatuses.RIVER_BLOCK_GEN, 578346);
     }
 
 }

@@ -1,5 +1,6 @@
 package me.legosteenjaap.reworkedrivers.mixin;
 
+import me.legosteenjaap.reworkedrivers.RiverBendType;
 import me.legosteenjaap.reworkedrivers.RiverDirection;
 import me.legosteenjaap.reworkedrivers.interfaces.ChunkRiverInterface;
 import net.minecraft.nbt.CompoundTag;
@@ -29,6 +30,8 @@ public class ChunkSerializerMixin {
         ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface) chunk;
         CompoundTag compoundTag = cir.getReturnValue();
         compoundTag.putInt("riverPoint", chunkRiverInterface.getRiverPoint());
+        if (chunkRiverInterface.getRiverBendType() != null) compoundTag.putString("riverBendType", chunkRiverInterface.getRiverBendType().toString());
+        compoundTag.putBoolean("hasSplit", chunkRiverInterface.hasSplit());
         writeRiverDirections(compoundTag, chunkRiverInterface.getRiverDirections(), "riverDirections");
     }
 
@@ -37,6 +40,8 @@ public class ChunkSerializerMixin {
     private static void read(ServerLevel lvel, PoiManager poiManager, ChunkPos pos, CompoundTag tag, CallbackInfoReturnable<ProtoChunk> cir) {
         ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface) cir.getReturnValue();
         if (tag.contains("riverPoint")) chunkRiverInterface.setRiverPoint(tag.getInt("riverPoint"));
+        if (tag.contains("riverBendType")) chunkRiverInterface.setRiverBendType(RiverBendType.valueOf(tag.getString("riverBendType")));
+        if (tag.contains("hasSplit")) chunkRiverInterface.setSplit(tag.getBoolean("hasSplit"));
         readRiverDirections(tag, chunkRiverInterface);
     }
 
