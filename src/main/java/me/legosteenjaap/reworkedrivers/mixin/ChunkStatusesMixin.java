@@ -55,6 +55,8 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
 
     private static final boolean DEBUG_PIECES = false;
     private static final boolean DEBUG_HEIGHT = false;
+    private static final boolean DEBUG_CONNECTION = true;
+    private static final RiverDirection DEBUG_RIVER_DIRECTION = RiverDirection.NORTH;
     private static final RiverBendType DEBUG_BEND_TYPE = RiverBendType.RIGHT;
 
     @Shadow @Final public static EnumSet<Heightmap.Types> POST_FEATURES;
@@ -127,11 +129,18 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
                             WorldGenRegion worldGenRegion = new WorldGenRegion(serverLevel, list, chunkStatus, RIVER_GEN_RANGE / 2);
                             ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface) chunkAccess;
                             //This code is for debugging individual river pieces
-                            if (startChunkPos.x % 3 == 0 && startChunkPos.z % 3 == 0) {
+                            if (!DEBUG_CONNECTION && startChunkPos.x % 3 == 0 && startChunkPos.z % 3 == 0) {
                                 RiverDirection riverDirection = RiverDirection.values()[Math.abs(startChunkPos.x / 3) % RiverDirection.values().length];
                                 chunkRiverInterface.addRiverDirection(riverDirection);
                                 //RiverBendType riverBendType = RiverBendType.values()[Math.abs(startChunkPos.x / 6) % RiverBendType.values().length];
                                 chunkRiverInterface.setRiverBendType(DEBUG_BEND_TYPE);
+                            } else {
+                                chunkRiverInterface.addRiverDirection(DEBUG_RIVER_DIRECTION);
+                                if (DEBUG_RIVER_DIRECTION == RiverDirection.NORTH || DEBUG_RIVER_DIRECTION == RiverDirection.SOUTH) {
+                                    chunkRiverInterface.setRiverBendType(startChunkPos.z % 2 == 0 ? RiverBendType.LEFT : RiverBendType.RIGHT);
+                                } else {
+                                    chunkRiverInterface.setRiverBendType(startChunkPos.x % 2 == 0 ? RiverBendType.LEFT : RiverBendType.RIGHT);
+                                }
                             }
 
                             return CompletableFuture.completedFuture(Either.left(chunkAccess));
@@ -290,21 +299,6 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
 
         if (otherChunkYLevel > currentYlevel) return;
 
-        //Makes sure that the starting area is surrounded by support blocks
-        for (int x = 6; x <= 9; x++) {
-            for (int z = 6; z <= 9; z++) {
-                //setSupportBlock(worldGenRegion, new BlockPos(chunkPos.getBlockX(x), startHeight, chunkPos.getBlockZ(z)));
-            }
-        }
-
-        //Makes sure that the start of the current river part is filled with water
-        for (int x = 7; x <= 8; x++) {
-            for (int z = 7; z <= 8; z++) {
-                //setRiverBlock(worldGenRegion, new BlockPos(chunkPos.getBlockX(x), currentYlevel, chunkPos.getBlockZ(z)));
-            }
-        }
-
-
         //The river height is decided by checking if the terrain around the river is lower than the river
         boolean isSouthOrEast = direction == RiverDirection.SOUTH || direction == RiverDirection.EAST;
         boolean isNorthOrSouth = direction == RiverDirection.NORTH || direction == RiverDirection.SOUTH;
@@ -316,17 +310,17 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
             BlockPos blockPos;
             int offset;
             switch (riverBendType) {
-                case BOTH -> offset = (int) ((Math.sin((float) z / 17 * Math.PI * 2) * 2));
-                case RIGHT -> offset = (int) ((Math.sin((float) z / 17 * Math.PI) * 8));
-                case LEFT -> offset = (int) ((Math.sin(((float) z / 17 + 1) * Math.PI) * 8));
+                case BOTH -> offset = (int) ((Math.sin((float) z / 16 * Math.PI * 2) * 2));
+                case RIGHT -> offset = (int) ((Math.sin((float) z / 16 * Math.PI) * 6));
+                case LEFT -> offset = (int) ((Math.sin(((float) z / 16 + 1) * Math.PI) * 6));
                 default -> offset = 0;
             }
             if (direction == RiverDirection.SOUTH || direction == RiverDirection.WEST) offset = -offset;
             if (lastOffset == null) lastOffset = offset;
             int startX = 0;
             switch (riverBendType) {
-                case LEFT -> startX = 7;
-                case RIGHT -> startX = 8;
+                case LEFT -> startX = isNorthOrSouth ? 7 : 8;
+                case RIGHT -> startX = isNorthOrSouth ? 8 : 7;
             }
             if (isNorthOrSouth) {
                 BlockPos startPos = new BlockPos(chunkPos.getBlockX(startX), currentYlevel, chunkPos.getBlockZ(isSouthOrEast ? 7 : 8));
@@ -336,15 +330,14 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
                     height = startHeight - z * 2;
                     System.out.println(height);
                 }
-                if (z == 17) {
+                if (z == 16) {
                     height = otherChunkYLevel;
                 }
                 if (height != otherChunkYLevel && (height <= worldGenRegion.getSeaLevel() - 1 || height <= otherChunkYLevel)) {
                     height = otherChunkYLevel;
                 }
                 if (currentYlevel > height) {
-                    int backwardsOffset = backwardsMultiplier;
-                    setFlowingRiverBlock(worldGenRegion, startPos.getX() + lastOffset, blockPos.getZ() + backwardsOffset, currentYlevel, height, direction);
+                    setFlowingRiverBlock(worldGenRegion, startPos.getX() + lastOffset, blockPos.getZ() + backwardsMultiplier, currentYlevel, height, direction);
                     currentYlevel = height;
                     blockPos = blockPos.atY(currentYlevel);
                 }
@@ -354,15 +347,14 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
                 blockPos = isSouthOrEast ? startPos.offset(z + 1, 0, offset) : startPos.offset(-z - 1, 0, offset);
                 int height = getCurrentHeight(worldGenRegion, blockPos, false);
                 if (DEBUG_HEIGHT) height = startHeight - z * 2;
-                if (z == 17) {
+                if (z == 16) {
                     height = otherChunkYLevel;
                 }
                 if (height != otherChunkYLevel && (height <= worldGenRegion.getSeaLevel() - 1 || height <= otherChunkYLevel)) {
                     height = otherChunkYLevel;
                 }
                 if (currentYlevel > height) {
-                    int backwardsOffset = backwardsMultiplier;
-                    setFlowingRiverBlock(worldGenRegion, blockPos.getX() + backwardsOffset, startPos.getZ() + lastOffset, currentYlevel, height, direction);
+                    setFlowingRiverBlock(worldGenRegion, blockPos.getX() + backwardsMultiplier, startPos.getZ() + lastOffset, currentYlevel, height, direction);
                     currentYlevel = height;
                     blockPos = blockPos.atY(currentYlevel);
                 }
@@ -550,8 +542,9 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
      */
     private static List<RiverDirection> getBestPossibleNeighbors(ChunkPos chunkPos, WorldGenRegion worldGenRegion) {
         ChunkRiverInterface currentRiverInterface = (ChunkRiverInterface) worldGenRegion.getChunk(chunkPos.x, chunkPos.z);
-        double currentRiverPoint = currentRiverInterface.getRiverPoint();
-        HashMap<Integer, RiverDirection> possibleRiverDirectionMap = new HashMap<>();
+        int currentRiverPoint = currentRiverInterface.getRiverPoint();
+        //HashMap<Integer, RiverDirection> possibleRiverDirectionMap = new HashMap<>();
+        ArrayList<RiverDirection> bestPossibleNeighbors = new ArrayList<>();
         for (RiverDirection riverDirection : RiverDirection.values()) {
             ChunkPos checkingChunkPos = RiverDirection.addDirectionToChunkPos(chunkPos, riverDirection);
             if (!worldGenRegion.hasChunk(checkingChunkPos.x, checkingChunkPos.z)) {
@@ -560,21 +553,14 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
             ChunkRiverInterface checkingRiverInterface = (ChunkRiverInterface) worldGenRegion.getChunk(checkingChunkPos.x, checkingChunkPos.z);
             int checkingRiverPoint = checkingRiverInterface.getRiverPoint();
             if (checkingRiverPoint >= currentRiverPoint && checkingRiverPoint > worldGenRegion.getSeaLevel() - 5 && !checkingRiverInterface.hasRiverDirections()) {
-                possibleRiverDirectionMap.put(checkingRiverPoint, riverDirection);
+                bestPossibleNeighbors.add(riverDirection);
+                //possibleRiverDirectionMap.put(checkingRiverPoint, riverDirection);
             }
-        }
-        //Sorts the possible river directions from best to worst.
-        ArrayList<Integer> sortedMapKeys = Lists.newArrayList(possibleRiverDirectionMap.keySet().stream().toList());
-        Collections.sort(sortedMapKeys);
-        //Collections.reverse(sortedMapKeys);
-        ArrayList<RiverDirection> bestPossibleNeighbors = new ArrayList<>();
-        for (int riverDirectionMapKey : sortedMapKeys) {
-            bestPossibleNeighbors.add(possibleRiverDirectionMap.get(riverDirectionMapKey));
         }
         if (bestPossibleNeighbors.isEmpty()) return Lists.newArrayList();
 
         //At the end this method randomly decides if a river splits or not.
-        return (worldGenRegion.getRandom().nextFloat() < 0.20 && currentRiverPoint > 0.5f)? bestPossibleNeighbors : Lists.newArrayList(bestPossibleNeighbors.get(0));
+        return worldGenRegion.getRandom().nextFloat() < 0.5 ? bestPossibleNeighbors : Lists.newArrayList(bestPossibleNeighbors.get(0));
     }
 
 }
