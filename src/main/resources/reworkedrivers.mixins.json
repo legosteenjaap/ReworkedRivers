@@ -10,7 +10,8 @@
     "DebugScreenOverlayMixin",
     "ChunkSerializerMixin",
     "LevelChunkMixin",
-    "LevelLoadingScreenMixin"
+    "LevelLoadingScreenMixin",
+    "StoringChunkProgressListenerMixin"
   ],
   "client": [
   ],

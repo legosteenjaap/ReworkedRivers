@@ -15,21 +15,7 @@ public enum RiverDirection {
      * @return New chunk one chunk away from current position of chunk with a certain direction
      */
     public static ChunkPos addDirectionToChunkPos(ChunkPos chunkPos, RiverDirection riverDirection) {
-        switch (riverDirection) {
-            case NORTH -> {
-                return new ChunkPos(chunkPos.x, chunkPos.z - 1);
-            }
-            case EAST -> {
-                return new ChunkPos(chunkPos.x + 1, chunkPos.z);
-            }
-            case SOUTH -> {
-                return new ChunkPos(chunkPos.x, chunkPos.z + 1);
-            }
-            case WEST -> {
-                return new ChunkPos(chunkPos.x - 1, chunkPos.z);
-            }
-        }
-        throw new AssertionError();
+        return new ChunkPos(chunkPos.x + riverDirection.getXOffset(), chunkPos.z + riverDirection.getZOffset());
     }
 
     /**
@@ -52,6 +38,30 @@ public enum RiverDirection {
             }
         }
         throw new AssertionError();
+    }
+
+    public int getXOffset() {
+        switch (this) {
+            case EAST -> {
+                return 1;
+            }
+            case WEST -> {
+                return -1;
+            }
+        }
+        return 0;
+    }
+
+    public int getZOffset() {
+        switch (this) {
+            case SOUTH -> {
+                return 1;
+            }
+            case NORTH -> {
+                return -1;
+            }
+        }
+        return 0;
     }
 
 }
