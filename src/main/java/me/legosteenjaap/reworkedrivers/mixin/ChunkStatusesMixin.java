@@ -176,19 +176,11 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
                     (chunkStatus, executor, serverLevel, chunkGenerator, structureTemplateManager, threadedLevelLightEngine, function, list, chunkAccess, bl) -> {
                         ChunkRiverInterface chunkRiverInterface = (ChunkRiverInterface) chunkAccess;
                         WorldGenRegion worldGenRegion = new WorldGenRegion(serverLevel, list, chunkStatus, 1);
-                        ChunkPos chunkPos = chunkAccess.getPos();
-                        for (int x = chunkPos.x - 1; x <= chunkPos.x + 1; x++) {
-                            for (int z = chunkPos.z - 1; z <= chunkPos.z + 1; z++) {
-                                if (!worldGenRegion.getChunk(chunkPos.x, chunkPos.z).getStatus().isOrAfter(NOISE)) throw new AssertionError();
-                            }
-                        }
                         for (RiverDirection riverDirection : chunkRiverInterface.getRiverDirections()) {
                             generateRiverPiece(worldGenRegion, chunkAccess, riverDirection, chunkRiverInterface.getRiverBendType(), chunkGenerator instanceof NoiseBasedChunkGenerator);
                         }
                         return CompletableFuture.completedFuture(Either.left(chunkAccess));
-                    },
-                    (chunkStatus, serverLevel, structureTemplateManager, threadedLevelLightEngine, function, chunkAccess) -> threadedLevelLightEngine.retainData(chunkAccess)
-                            .thenApply(Either::left));
+                    });
 
             cir.setReturnValue(Registry.register(Registry.CHUNK_STATUS, key, ChunkStatusInvoker.init(key, NewChunkStatuses.RIVER_BLOCK_GEN, 9, heightmaps, type, generationTask, loadingTask)));
         } else if (SURFACE != null && LIGHT == null && !key.equals("light") ) {
@@ -543,6 +535,7 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
      */
     private static boolean startRiverBranch(WorldGenRegion worldGenRegion, ChunkPos currentChunkPos, RiverDirection lastRiverDirection, RiverBendType lastRiverBendType) {
         List<RiverDirection> bestPossibleNeighbors = getBestPossibleNeighbors(currentChunkPos, worldGenRegion);
+        if (!worldGenRegion.hasChunk(currentChunkPos.x, currentChunkPos.z)) return false;
         ChunkRiverInterface currentRiverInterface = (ChunkRiverInterface) worldGenRegion.getChunk(currentChunkPos.x, currentChunkPos.z);
         if (!bestPossibleNeighbors.isEmpty()) {
             int possibleNeighborAmount = 0;
@@ -600,7 +593,6 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
     private static List<RiverDirection> getBestPossibleNeighbors(ChunkPos chunkPos, WorldGenRegion worldGenRegion) {
         ChunkRiverInterface currentRiverInterface = (ChunkRiverInterface) worldGenRegion.getChunk(chunkPos.x, chunkPos.z);
         int currentRiverPoint = currentRiverInterface.getRiverPoint();
-        //HashMap<Integer, RiverDirection> possibleRiverDirectionMap = new HashMap<>();
         ArrayList<RiverDirection> bestPossibleNeighbors = new ArrayList<>();
         for (RiverDirection riverDirection : RiverDirection.values()) {
             ChunkPos checkingChunkPos = RiverDirection.addDirectionToChunkPos(chunkPos, riverDirection);
@@ -611,7 +603,6 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
             int checkingRiverPoint = checkingRiverInterface.getRiverPoint();
             if (checkingRiverPoint >= currentRiverPoint && checkingRiverPoint > worldGenRegion.getSeaLevel() - 5 && !checkingRiverInterface.hasRiverDirections()) {
                 bestPossibleNeighbors.add(riverDirection);
-                //possibleRiverDirectionMap.put(checkingRiverPoint, riverDirection);
             }
         }
         if (bestPossibleNeighbors.isEmpty()) return Lists.newArrayList();
