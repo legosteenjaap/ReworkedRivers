@@ -182,14 +182,10 @@ public abstract class ChunkStatusesMixin<T extends ChunkStatus> {
                                 if (!worldGenRegion.getChunk(chunkPos.x, chunkPos.z).getStatus().isOrAfter(NOISE)) throw new AssertionError();
                             }
                         }
-                        try {
-                            for (RiverDirection riverDirection : chunkRiverInterface.getRiverDirections()) {
-                                generateRiverPiece(worldGenRegion, chunkAccess, riverDirection, chunkRiverInterface.getRiverBendType(), chunkGenerator instanceof NoiseBasedChunkGenerator);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        for (RiverDirection riverDirection : chunkRiverInterface.getRiverDirections()) {
+                            generateRiverPiece(worldGenRegion, chunkAccess, riverDirection, chunkRiverInterface.getRiverBendType(), chunkGenerator instanceof NoiseBasedChunkGenerator);
                         }
-                        return threadedLevelLightEngine.retainData(chunkAccess).thenApply(Either::left);
+                        return CompletableFuture.completedFuture(Either.left(chunkAccess));
                     },
                     (chunkStatus, serverLevel, structureTemplateManager, threadedLevelLightEngine, function, chunkAccess) -> threadedLevelLightEngine.retainData(chunkAccess)
                             .thenApply(Either::left));
