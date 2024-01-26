@@ -10,7 +10,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(LevelLoadingScreen.class)
-public class LevelLoadingScreenMixin {
+public class LoadingScreenColorMixin {
 
     @Inject(method = "method_17537", at = @At("RETURN"))
     private static void addChunkStatusColors(Object2IntOpenHashMap<ChunkStatus> object2IntOpenHashMap, CallbackInfo ci) {

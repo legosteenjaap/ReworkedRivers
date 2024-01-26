@@ -1,13 +1,9 @@
 package me.legosteenjaap.reworkedrivers;
 
-import me.legosteenjaap.reworkedrivers.mixin.ChunkStatusesMixin;
-import net.minecraft.data.BuiltinRegistries;
-import net.minecraft.data.worldgen.features.CaveFeatures;
-import net.minecraft.data.worldgen.features.MiscOverworldFeatures;
-import net.minecraft.data.worldgen.features.VegetationFeatures;
+import me.legosteenjaap.reworkedrivers.river.RiverBendType;
+import me.legosteenjaap.reworkedrivers.river.RiverDirection;
 import net.minecraft.data.worldgen.placement.MiscOverworldPlacements;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.levelgen.GenerationStep;
 import org.quiltmc.loader.api.ModContainer;
 import org.quiltmc.qsl.base.api.entrypoint.ModInitializer;
 import org.quiltmc.qsl.worldgen.biome.api.BiomeModifications;
@@ -17,9 +13,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ReworkedRivers implements ModInitializer {
-	// This logger is used to write text to the console and the log file.
-	// It is considered best practice to use your mod id as the logger's name.
-	// That way, it's clear which mod wrote info, warnings, and errors.
+
+	public static final boolean DEBUG_PIECES = false;
+	public static final boolean DEBUG_HEIGHT = false;
+	public static final boolean DEBUG_CONNECTION = false;
+	public static final RiverDirection DEBUG_RIVER_DIRECTION = RiverDirection.NORTH;
+	public static final RiverBendType DEBUG_BEND_TYPE = RiverBendType.RIGHT;
 
 	public static final String MOD_ID = "reworked_rivers";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);

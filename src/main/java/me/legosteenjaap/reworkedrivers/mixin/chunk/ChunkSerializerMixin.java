@@ -1,7 +1,7 @@
-package me.legosteenjaap.reworkedrivers.mixin;
+package me.legosteenjaap.reworkedrivers.mixin.chunk;
 
-import me.legosteenjaap.reworkedrivers.RiverBendType;
-import me.legosteenjaap.reworkedrivers.RiverDirection;
+import me.legosteenjaap.reworkedrivers.river.RiverBendType;
+import me.legosteenjaap.reworkedrivers.river.RiverDirection;
 import me.legosteenjaap.reworkedrivers.interfaces.ChunkRiverInterface;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;

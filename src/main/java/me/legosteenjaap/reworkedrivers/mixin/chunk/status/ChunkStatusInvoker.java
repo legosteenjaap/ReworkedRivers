@@ -1,4 +1,4 @@
-package me.legosteenjaap.reworkedrivers.mixin;
+package me.legosteenjaap.reworkedrivers.mixin.chunk.status;
 
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.levelgen.Heightmap;

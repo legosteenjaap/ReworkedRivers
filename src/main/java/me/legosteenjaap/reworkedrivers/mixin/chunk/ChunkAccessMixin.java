@@ -1,9 +1,8 @@
-package me.legosteenjaap.reworkedrivers.mixin;
+package me.legosteenjaap.reworkedrivers.mixin.chunk;
 
-import me.legosteenjaap.reworkedrivers.RiverBendType;
-import me.legosteenjaap.reworkedrivers.RiverDirection;
+import me.legosteenjaap.reworkedrivers.river.RiverBendType;
+import me.legosteenjaap.reworkedrivers.river.RiverDirection;
 import me.legosteenjaap.reworkedrivers.interfaces.ChunkRiverInterface;
-import net.minecraft.server.level.WorldGenRegion;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import org.spongepowered.asm.mixin.Mixin;

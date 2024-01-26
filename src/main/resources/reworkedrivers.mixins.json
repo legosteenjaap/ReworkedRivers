@@ -4,14 +4,14 @@
   "package": "me.legosteenjaap.reworkedrivers.mixin",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
-    "ChunkStatusesMixin",
-    "ChunkAccessMixin",
-    "ChunkStatusInvoker",
-    "DebugScreenOverlayMixin",
-    "ChunkSerializerMixin",
-    "LevelChunkMixin",
-    "LevelLoadingScreenMixin",
-    "StoringChunkProgressListenerMixin"
+    "chunk.status.ChunkStatusesMixin",
+    "chunk.ChunkAccessMixin",
+    "chunk.status.ChunkStatusInvoker",
+    "DebugInformationMixin",
+    "chunk.ChunkSerializerMixin",
+    "chunk.ProtoChunkUpgradeMixin",
+    "LoadingScreenColorMixin",
+    "GenerationTimeMixin"
   ],
   "client": [
   ],

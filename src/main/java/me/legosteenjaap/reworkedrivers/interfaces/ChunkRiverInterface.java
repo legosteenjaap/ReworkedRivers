@@ -1,8 +1,7 @@
 package me.legosteenjaap.reworkedrivers.interfaces;
 
-import me.legosteenjaap.reworkedrivers.RiverBendType;
-import me.legosteenjaap.reworkedrivers.RiverDirection;
-import net.minecraft.server.level.WorldGenRegion;
+import me.legosteenjaap.reworkedrivers.river.RiverBendType;
+import me.legosteenjaap.reworkedrivers.river.RiverDirection;
 
 import java.util.ArrayList;
 

@@ -1,4 +1,4 @@
-package me.legosteenjaap.reworkedrivers;
+package me.legosteenjaap.reworkedrivers.river;
 
 public enum RiverBendType {
     NONE,
